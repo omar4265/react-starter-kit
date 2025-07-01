@@ -418,6 +418,34 @@ export const handleWebhookEvent = mutation({
         // Orders are handled through the subscription events
         break;
 
+      case "order.paid":
+        // Handle one-time payments - insert as a subscription
+        await ctx.db.insert("subscriptions", {
+          polarId: args.body.data.id,
+          polarPriceId: args.body.data.price_id,
+          currency: args.body.data.currency,
+          interval: undefined, // One-time payment, no recurring interval
+          userId: args.body.data.metadata?.userId,
+          status: "active", // One-time payments are immediately active
+          currentPeriodStart: new Date(args.body.data.created_at).getTime(),
+          currentPeriodEnd: undefined, // No end date for one-time payments
+          cancelAtPeriodEnd: false,
+          amount: args.body.data.amount,
+          startedAt: new Date(args.body.data.created_at).getTime(),
+          endedAt: undefined,
+          canceledAt: undefined,
+          customerCancellationReason: undefined,
+          customerCancellationComment: undefined,
+          metadata: {
+            ...args.body.data.metadata,
+            customerSessionToken: args.body.data.customer_session_token,
+            orderType: "one-time",
+          },
+          customFieldData: args.body.data.custom_field_data || {},
+          customerId: args.body.data.customer_id,
+        });
+        break;
+
       default:
         console.log(`Unhandled event type: ${eventType}`);
         break;

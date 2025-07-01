@@ -19,7 +19,6 @@ export default function Success() {
   const subscription = useQuery(api.subscriptions.fetchUserSubscription);
   const upsertUser = useMutation(api.users.upsertUser);
 
-  // Ensure user is created/updated when they land on success page
   useEffect(() => {
     if (isSignedIn) {
       upsertUser();
@@ -33,7 +32,7 @@ export default function Success() {
           <CardHeader>
             <CardTitle className="text-2xl">Access Denied</CardTitle>
             <CardDescription>
-              Please sign in to view your subscription details.
+              Please sign in to view your purchase details.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -51,7 +50,7 @@ export default function Success() {
       <section className="flex flex-col items-center justify-center min-h-screen px-4">
         <div className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading your subscription details...</span>
+          <span>Loading your purchase details...</span>
         </div>
       </section>
     );
@@ -65,16 +64,15 @@ export default function Success() {
             <CheckCircle className="h-16 w-16 text-green-500" />
           </div>
           <CardTitle className="text-3xl font-bold">
-            Welcome to your subscription!
+            Purchase Successful!
           </CardTitle>
           <CardDescription className="text-lg">
-            Your payment was successful and your subscription is now active.
+            Your payment was successful and your purchase is now complete.
           </CardDescription>
         </CardHeader>
-        
         <CardContent className="space-y-6">
           <div className="bg-muted rounded-lg p-6 text-left">
-            <h3 className="font-semibold text-lg mb-4">Subscription Details</h3>
+            <h3 className="font-semibold text-lg mb-4">Purchase Details</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Status:</span>
@@ -87,18 +85,13 @@ export default function Success() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Billing Cycle:</span>
-                <span className="font-medium capitalize">{subscription.interval}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Next Billing:</span>
+                <span className="text-muted-foreground">Purchase Date:</span>
                 <span className="font-medium">
-                  {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'N/A'}
+                  {subscription.currentPeriodStart ? new Date(subscription.currentPeriodStart).toLocaleDateString() : 'N/A'}
                 </span>
               </div>
             </div>
           </div>
-
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">What's Next?</h3>
             <div className="grid gap-4 md:grid-cols-2">
@@ -106,7 +99,7 @@ export default function Success() {
                 <Link to={subscription?.status === 'active' ? "/dashboard" : "/pricing"}>
                   {subscription?.status === 'active' ? (
                     <>
-                      Go to Dashboard
+                      Access Your Purchase
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   ) : (
@@ -121,14 +114,11 @@ export default function Success() {
               </Button>
             </div>
           </div>
-
           <div className="pt-6 border-t">
             <p className="text-sm text-muted-foreground">
-              {subscription?.status === 'active' ? (
-                "You'll receive a confirmation email shortly. If you have any questions, feel free to contact our support team."
-              ) : (
-                "Your payment is processing. It may take a few minutes for your subscription to activate. Please refresh the page or try again shortly."
-              )}
+              {subscription?.status === 'active'
+                ? "You'll receive a confirmation email shortly. If you have any questions, feel free to contact our support team."
+                : "Your payment is processing. It may take a few minutes for your purchase to activate. Please refresh the page or try again shortly."}
             </p>
           </div>
         </CardContent>

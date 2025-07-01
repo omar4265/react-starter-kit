@@ -8,8 +8,8 @@ import { cn } from "~/lib/utils";
 
 const menuItems = [
   { name: "Home", href: "#hero" },
-  { name: "Features", href: "#features" },
-  { name: "Team", href: "#team" },
+  { name: "How It Works", href: "#how-it-works" },
+  { name: "Companies", href: "#trusted-companies" },
   { name: "Pricing", href: "#pricing" },
 ];
 
@@ -71,7 +71,10 @@ export const Navbar = ({
                 className="flex items-center space-x-2 font-semibold text-xl"
                 prefetch="viewport"
               >
-                <img src="/rsk.png" alt="RSK Logo" className="h-12 w-12" />
+                <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                  CV
+                </div>
+                <span>CVReach</span>
               </Link>
 
               <button

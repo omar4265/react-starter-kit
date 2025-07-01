@@ -5,17 +5,17 @@ import Footer from "~/components/homepage/footer";
 import Integrations from "~/components/homepage/integrations";
 import Pricing from "~/components/homepage/pricing";
 import Team from "~/components/homepage/team";
+import FAQSection from "~/components/homepage/faq";
 import { api } from "../../convex/_generated/api";
 import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
-  const title = "React Starter Kit - Launch Your SAAS Quickly";
+  const title = "CVReach - Get Your CV to 200M+ Companies";
   const description =
-    "This powerful starter kit is designed to help you launch your SAAS application quickly and efficiently.";
-  const keywords = "React, Starter Kit, SAAS, Launch, Quickly, Efficiently";
-  const siteUrl = "https://www.reactstarter.xyz/";
-  const imageUrl =
-    "https://jdj14ctwppwprnqu.public.blob.vercel-storage.com/rsk-image-FcUcfBMBgsjNLo99j3NhKV64GT2bQl.png";
+    "Upload your CV once and we'll optimize it for ATS systems and distribute it to hundreds of relevant companies. Stop applying one by one - let AI do the work for you.";
+  const keywords = "CV, Resume, Job Application, ATS, AI, Distribution, Companies, Job Search";
+  const siteUrl = "https://cvreach.com/";
+  const imageUrl = "/favicon.png";
 
   return [
     { title },
@@ -32,7 +32,7 @@ export function meta({}: Route.MetaArgs) {
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
     { property: "og:url", content: siteUrl },
-    { property: "og:site_name", content: "React Starter Kit" },
+    { property: "og:site_name", content: "CVReach" },
     { property: "og:image", content: imageUrl },
 
     // Twitter Card
@@ -47,7 +47,7 @@ export function meta({}: Route.MetaArgs) {
       name: "keywords",
       content: keywords,
     },
-    { name: "author", content: "Ras Mic" },
+    { name: "author", content: "CVReach Team" },
     { name: "favicon", content: imageUrl },
   ];
 }
@@ -82,6 +82,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <ContentSection />
       <Team />
       <Pricing loaderData={loaderData} />
+      <FAQSection />
       <Footer />
     </>
   );

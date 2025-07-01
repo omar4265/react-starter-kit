@@ -69,11 +69,10 @@ export default function Pricing({ loaderData }: { loaderData: any }) {
       <div className="mx-auto max-w-6xl px-6">
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <h1 className="text-center text-4xl font-semibold lg:text-5xl">
-            Pricing that Scales with You
+            Choose Your Distribution Plan
           </h1>
           <p>
-            Choose the plan that fits your needs. All plans include full access
-            to our platform.
+            Select how many companies you want to reach. All plans include ATS optimization and smart targeting.
           </p>
         </div>
 

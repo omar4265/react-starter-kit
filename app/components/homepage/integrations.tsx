@@ -1,17 +1,9 @@
 import { memo } from "react";
 import { Link } from "react-router";
-import { LogoIcon } from "~/components/logo";
-import {
-  Convex,
-  Polar,
-  ReactIcon,
-  ReactRouter,
-  TailwindIcon,
-  Typescript,
-} from "~/components/logos";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { Navbar } from "./navbar";
+import { ArrowRight, Upload, Target, Zap } from "lucide-react";
 
 export default function IntegrationsSection({
   loaderData,
@@ -21,55 +13,34 @@ export default function IntegrationsSection({
   return (
     <section id="hero">
       <Navbar loaderData={loaderData} />
-      <div className="bg-muted dark:bg-background py-24 md:py-32">
-        <div className="mx-auto max-w-5xl px-6 mt-[2rem]">
-          <div className="grid items-center sm:grid-cols-2">
-            <div className="dark:bg-muted/50 relative mx-auto w-fit">
-              <div className="bg-radial to-muted dark:to-background absolute inset-0 z-10 from-transparent to-75%"></div>
-              <div className="mx-auto mb-2 flex w-fit justify-center gap-2">
-                <IntegrationCard>
-                  <ReactRouter />
-                </IntegrationCard>
-                <IntegrationCard>
-                  <Convex />
-                </IntegrationCard>
+      <div className="bg-gradient-to-br from-background via-background to-primary/5 py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 mt-[2rem]">
+          <div className="grid items-center lg:grid-cols-2 gap-12 lg:gap-16">
+            {/* Left side - Content */}
+            <div className="text-center lg:text-left space-y-8">
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
+                  <Zap className="w-4 h-4" />
+                  Reviewed by Real Hiring Experts
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                  Get Your CV to{" "}
+                  <span className="text-primary">200M+ Companies</span>
+                </h1>
+                <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  Upload your CV once—our team of real hiring professionals will optimize it for ATS and send it to hundreds of relevant companies. No bots, just expert help.
+                </p>
               </div>
-              <div className="mx-auto my-2 flex w-fit justify-center gap-2">
-                <IntegrationCard>
-                  <ReactIcon />
-                </IntegrationCard>
-                <IntegrationCard
-                  borderClassName="shadow-black-950/10 shadow-xl border-black/25 dark:border-white/25"
-                  className="dark:bg-white/10"
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button 
+                  size="lg" 
+                  asChild 
+                  className="text-lg px-8 py-6 animate-glow shadow-lg shadow-primary/30 relative overflow-hidden"
+                  style={{
+                    boxShadow: '0 0 24px 4px var(--tw-shadow-color, #3b82f6)',
+                  }}
                 >
-                  <LogoIcon />
-                </IntegrationCard>
-                <IntegrationCard>
-                  <TailwindIcon />
-                </IntegrationCard>
-              </div>
-
-              <div className="mx-auto flex w-fit justify-center gap-2">
-                <IntegrationCard>
-                  <Typescript />
-                </IntegrationCard>
-
-                <IntegrationCard>
-                  <Polar />
-                </IntegrationCard>
-              </div>
-            </div>
-            <div className="mx-auto mt-6 max-w-lg space-y-6 text-center sm:mt-0 sm:text-left">
-              <h2 className="text-balance text-3xl font-semibold md:text-4xl">
-                React Starter Kit
-              </h2>
-              <p className="text-muted-foreground">
-                This powerful starter kit is designed to help you launch your
-                SAAS application quickly and efficiently.
-              </p>
-
-              <div className="flex gap-3">
-                <Button size="sm" asChild>
                   <Link
                     to={
                       loaderData?.isSignedIn
@@ -80,22 +51,75 @@ export default function IntegrationsSection({
                     }
                     prefetch="viewport"
                   >
-                    {loaderData?.isSignedIn
-                      ? loaderData?.hasActiveSubscription
-                        ? "Go to Dashboard (Demo)"
-                        : "Subscribe Now (Demo)"
-                      : "Get Started (Demo)"}
+                    Send My CV Now
+                    <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link
-                    to="https://github.com/michaelshimeles/react-starter-kit"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ⭐️ Start on GitHub
-                  </Link>
-                </Button>
+              </div>
+
+              <div className="flex items-center justify-center lg:justify-start gap-8 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  <span>Upload CV</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  <span>Choose Companies</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4" />
+                  <span>Get Distributed</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right side - Visual */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl p-8 border">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-background rounded-2xl p-6 border shadow-sm">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl mb-4 flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Upload CV</h3>
+                    <p className="text-sm text-muted-foreground">Simple drag & drop</p>
+                  </div>
+                  <div className="bg-background rounded-2xl p-6 border shadow-sm">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl mb-4 flex items-center justify-center">
+                      <Target className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">200M+ Companies</h3>
+                    <p className="text-sm text-muted-foreground">Global database</p>
+                  </div>
+                  <div className="bg-background rounded-2xl p-6 border shadow-sm">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl mb-4 flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">ATS Optimized</h3>
+                    <p className="text-sm text-muted-foreground">AI enhancement</p>
+                  </div>
+                  <div className="bg-background rounded-2xl p-6 border shadow-sm">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl mb-4 flex items-center justify-center">
+                      <ArrowRight className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Get Distributed</h3>
+                    <p className="text-sm text-muted-foreground">100-500 companies</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Floating stats */}
+              <div className="absolute -top-4 -right-4 bg-background rounded-2xl p-4 border shadow-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">500+</div>
+                  <div className="text-xs text-muted-foreground">Companies</div>
+                </div>
+              </div>
+              <div className="absolute -bottom-4 -left-4 bg-background rounded-2xl p-4 border shadow-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">95%</div>
+                  <div className="text-xs text-muted-foreground">ATS Success</div>
+                </div>
               </div>
             </div>
           </div>
@@ -105,6 +129,7 @@ export default function IntegrationsSection({
   );
 }
 
+// Keep the IntegrationCard component for potential future use
 const IntegrationCard = memo(({
   children,
   className,
