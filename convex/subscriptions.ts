@@ -19,8 +19,12 @@ const createCheckout = async ({
     throw new Error("POLAR_ACCESS_TOKEN is not configured");
   }
 
+  if (!process.env.POLAR_ORGANIZATION_ID) {
+    throw new Error("POLAR_ORGANIZATION_ID is not configured");
+  }
+
   const polar = new Polar({
-    server: (process.env.POLAR_SERVER as "sandbox" | "production") || "sandbox",
+    server: "production",
     accessToken: process.env.POLAR_ACCESS_TOKEN,
   });
 
@@ -148,14 +152,24 @@ export const createCheckoutSession = action({
       if (!user) throw new Error("Failed to create user");
     }
 
-    const checkout = await createCheckout({
-      customerEmail: user.email!,
-      productPriceId: args.priceId,
-      successUrl: `${process.env.FRONTEND_URL}/success`,
-      metadata: { userId: user.tokenIdentifier },
-    });
+    // Ensure user has an email
+    if (!user.email) {
+      throw new Error("User email is required for checkout");
+    }
 
-    return checkout.url;
+    try {
+      const checkout = await createCheckout({
+        customerEmail: user.email,
+        productPriceId: args.priceId,
+        successUrl: `${process.env.FRONTEND_URL}/success`,
+        metadata: { userId: user.tokenIdentifier },
+      });
+
+      return checkout.url;
+    } catch (error) {
+      console.error("Checkout creation failed:", error);
+      throw new Error(`Failed to create checkout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   },
 });
 
