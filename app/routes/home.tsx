@@ -1,12 +1,10 @@
 import { getAuth } from "@clerk/react-router/ssr.server";
-import { fetchAction, fetchQuery } from "convex/nextjs";
 import ContentSection from "~/components/homepage/content";
 import Footer from "~/components/homepage/footer";
 import Integrations from "~/components/homepage/integrations";
 import Pricing from "~/components/homepage/pricing";
 import Team from "~/components/homepage/team";
 import FAQSection from "~/components/homepage/faq";
-import { api } from "../../convex/_generated/api";
 import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
@@ -55,23 +53,8 @@ export function meta({}: Route.MetaArgs) {
 export async function loader(args: Route.LoaderArgs) {
   const { userId } = await getAuth(args);
 
-  // Parallel data fetching to reduce waterfall
-  const [subscriptionData, plans] = await Promise.all([
-    userId
-      ? fetchQuery(api.subscriptions.checkUserSubscriptionStatus, {
-          userId,
-        }).catch((error) => {
-          console.error("Failed to fetch subscription data:", error);
-          return null;
-        })
-      : Promise.resolve(null),
-    fetchAction(api.subscriptions.getAvailablePlans),
-  ]);
-
   return {
     isSignedIn: !!userId,
-    hasActiveSubscription: subscriptionData?.hasActiveSubscription || false,
-    plans,
   };
 }
 

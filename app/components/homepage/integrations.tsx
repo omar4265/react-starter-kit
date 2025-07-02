@@ -8,7 +8,7 @@ import { ArrowRight, Upload, Target, Zap } from "lucide-react";
 export default function IntegrationsSection({
   loaderData,
 }: {
-  loaderData?: { isSignedIn: boolean; hasActiveSubscription: boolean };
+  loaderData?: { isSignedIn: boolean; hasActiveSubscription?: boolean };
 }) {
   return (
     <section id="hero">

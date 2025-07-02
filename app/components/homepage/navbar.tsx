@@ -16,7 +16,7 @@ const menuItems = [
 export const Navbar = ({
   loaderData,
 }: {
-  loaderData?: { isSignedIn: boolean; hasActiveSubscription: boolean };
+  loaderData?: { isSignedIn: boolean; hasActiveSubscription?: boolean };
 }) => {
   const [menuState, setMenuState] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);

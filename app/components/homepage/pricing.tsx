@@ -2,7 +2,7 @@
 import { useAuth } from "@clerk/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { Check, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -13,15 +13,35 @@ import {
 } from "~/components/ui/card";
 import { api } from "../../../convex/_generated/api";
 
-export default function Pricing({ loaderData }: { loaderData: any }) {
+export default function Pricing({ loaderData }: { loaderData?: any }) {
   const { isSignedIn } = useAuth();
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [plans, setPlans] = useState<any>(null);
+  const [loadingPlans, setLoadingPlans] = useState(true);
 
   const userSubscription = useQuery(api.subscriptions.fetchUserSubscription);
+  const getPlans = useAction(api.subscriptions.getAvailablePlans);
   const createCheckout = useAction(api.subscriptions.createCheckoutSession);
   const createPortalUrl = useAction(api.subscriptions.createCustomerPortalUrl);
   const upsertUser = useMutation(api.users.upsertUser);
+
+  // Load plans on component mount
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        setLoadingPlans(true);
+        const result = await getPlans();
+        setPlans(result);
+      } catch (error) {
+        console.error("Failed to load plans:", error);
+        setError("Failed to load pricing plans. Please try again.");
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+    loadPlans();
+  }, [getPlans]);
 
   const handleSubscribe = async (priceId: string) => {
     if (!isSignedIn) {
@@ -76,7 +96,7 @@ export default function Pricing({ loaderData }: { loaderData: any }) {
           </p>
         </div>
 
-        {!loaderData?.plans ? (
+        {loadingPlans || !plans ? (
           <div className="mt-8 flex items-center justify-center">
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -86,7 +106,7 @@ export default function Pricing({ loaderData }: { loaderData: any }) {
           </div>
         ) : (
           <div className="mt-8 grid gap-6 md:mt-20 md:grid-cols-3">
-            {loaderData.plans.items
+            {plans.items
               .sort((a: any, b: any) => {
                 const priceComparison = a.prices[0].amount - b.prices[0].amount;
                 return priceComparison !== 0
@@ -95,9 +115,9 @@ export default function Pricing({ loaderData }: { loaderData: any }) {
               })
               .map((plan: any, index: number) => {
                 const isPopular =
-                  loaderData.plans.items.length === 2
+                  plans.items.length === 2
                     ? index === 1
-                    : index === Math.floor(loaderData.plans.items.length / 2); // Mark middle/higher priced plan as popular
+                    : index === Math.floor(plans.items.length / 2); // Mark middle/higher priced plan as popular
                 const price = plan.prices[0];
                 const isCurrentPlan =
                   userSubscription?.status === "active" &&
@@ -214,7 +234,7 @@ export default function Pricing({ loaderData }: { loaderData: any }) {
         )}
 
         {userSubscription &&
-          !loaderData.plans?.items.some(
+          !plans?.items.some(
             (plan: any) => plan.prices[0].id === userSubscription.polarPriceId
           ) && (
             <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-md max-w-md mx-auto">
