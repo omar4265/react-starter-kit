@@ -44,9 +44,7 @@ export default function IntegrationsSection({
                   <Link
                     to={
                       loaderData?.isSignedIn
-                        ? loaderData?.hasActiveSubscription
-                          ? "/dashboard"
-                          : "/pricing"
+                        ? "/onboarding"
                         : "/sign-up"
                     }
                     prefetch="viewport"

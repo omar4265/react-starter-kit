@@ -40,4 +40,23 @@ export default defineSchema({
   })
     .index("type", ["type"])
     .index("polarEventId", ["polarEventId"]),
+  applications: defineTable({
+    userId: v.string(),
+    goal: v.string(),
+    location: v.string(),
+    workStyle: v.string(),
+    experienceLevel: v.string(),
+    startupPreference: v.string(),
+    teamVibe: v.string(),
+    targetCountries: v.array(v.string()),
+    cvFileUrl: v.optional(v.string()),
+    cvOptimization: v.string(),
+    jobTitles: v.array(v.string()),
+    companyCount: v.string(),
+    status: v.string(), // "draft", "submitted", "processing", "completed"
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_status", ["status"]),
 });
