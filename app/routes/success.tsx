@@ -12,18 +12,90 @@ import {
 } from "~/components/ui/card";
 import { CheckCircle, ArrowRight, Loader2 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+// Interface for onboarding data
+interface OnboardingData {
+  goal: string;
+  location: string;
+  workStyle: string;
+  firstName: string;
+  lastName: string;
+  currentLocation: string;
+  experienceLevel: string;
+  startupPreference: string;
+  teamVibe: string;
+  targetCountries: string[];
+  cvFile: File | null;
+  cvOptimization: string;
+  jobTitles: string[];
+  companyCount: string;
+}
+
+// Utility function to load onboarding data from localStorage
+function loadOnboardingData(): OnboardingData | null {
+  const raw = localStorage.getItem("cvreach_onboarding_data");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 export default function Success() {
   const { isSignedIn } = useAuth();
   const subscription = useQuery(api.subscriptions.fetchUserSubscription);
   const upsertUser = useMutation(api.users.upsertUser);
+  const saveApplication = useMutation(api.applications.saveApplication);
+  const [applicationSaved, setApplicationSaved] = useState(false);
+  const [savingApplication, setSavingApplication] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
       upsertUser();
     }
   }, [isSignedIn, upsertUser]);
+
+  // Save onboarding data to Convex when user is signed in and has a subscription
+  useEffect(() => {
+    if (isSignedIn && subscription && !applicationSaved && !savingApplication) {
+      const onboardingData = loadOnboardingData();
+      if (onboardingData) {
+        setSavingApplication(true);
+        
+        // Prepare the application data for Convex
+        const applicationData = {
+          goal: onboardingData.goal,
+          location: onboardingData.currentLocation || onboardingData.location,
+          workStyle: onboardingData.workStyle,
+          experienceLevel: onboardingData.experienceLevel,
+          startupPreference: onboardingData.startupPreference,
+          teamVibe: onboardingData.teamVibe,
+          targetCountries: onboardingData.targetCountries,
+          cvFileUrl: "", // We'll handle file upload separately if needed
+          cvOptimization: onboardingData.cvOptimization,
+          jobTitles: onboardingData.jobTitles,
+          companyCount: onboardingData.companyCount,
+          status: "submitted", // Set initial status
+        };
+
+        saveApplication(applicationData)
+          .then(() => {
+            console.log("Application saved successfully");
+            setApplicationSaved(true);
+            // Clear localStorage after successful save
+            localStorage.removeItem("cvreach_onboarding_data");
+          })
+          .catch((error) => {
+            console.error("Failed to save application:", error);
+          })
+          .finally(() => {
+            setSavingApplication(false);
+          });
+      }
+    }
+  }, [isSignedIn, subscription, applicationSaved, savingApplication, saveApplication]);
 
   if (!isSignedIn) {
     return (
@@ -92,6 +164,26 @@ export default function Success() {
               </div>
             </div>
           </div>
+          
+          {/* Application Status */}
+          {savingApplication && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-blue-700">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Saving your application...</span>
+              </div>
+            </div>
+          )}
+          
+          {applicationSaved && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-green-700">
+                <CheckCircle className="h-4 w-4" />
+                <span>Your application has been saved successfully!</span>
+              </div>
+            </div>
+          )}
+          
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">What's Next?</h3>
             <div className="grid gap-4 md:grid-cols-2">
@@ -99,7 +191,7 @@ export default function Success() {
                 <Link to={subscription?.status === 'active' ? "/dashboard" : "/pricing"}>
                   {subscription?.status === 'active' ? (
                     <>
-                      Access Your Purchase
+                      Access Your Dashboard
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   ) : (
