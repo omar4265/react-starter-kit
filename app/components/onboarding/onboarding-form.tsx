@@ -140,8 +140,8 @@ export default function OnboardingForm() {
         status: "submitted",
       });
 
-      // Reload the page to show the paywall
-      window.location.reload();
+      // Redirect to Clerk sign-up with redirect to /pricing
+      window.location.href = "/sign-up?redirect_url=/pricing";
     } catch (error) {
       console.error("Failed to save application:", error);
       // Handle error - could show a toast notification
