@@ -64,16 +64,32 @@ export const getApplication = query({
       const userId = identity.subject;
       console.log("getApplication: userId", userId);
       
+      if (!userId) {
+        console.log("getApplication: no userId, returning null");
+        return null;
+      }
+
       const result = await ctx.db
         .query("applications")
         .withIndex("by_user", (q) => q.eq("userId", userId))
         .first();
       
       console.log("getApplication: result", result ? "found" : "not found");
+      
+      if (result) {
+        console.log("getApplication: application data", {
+          id: result._id,
+          userId: result.userId,
+          goal: result.goal,
+          status: result.status
+        });
+      }
+      
       return result;
     } catch (error) {
       console.error("getApplication error:", error);
-      throw error;
+      // Return null instead of throwing to prevent client crashes
+      return null;
     }
   },
 });
