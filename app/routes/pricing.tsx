@@ -15,6 +15,21 @@ import {
 } from "~/components/ui/card";
 import { api } from "../../convex/_generated/api";
 
+// Utility for onboarding data
+const LOCAL_STORAGE_KEY = "cvreach_onboarding_data";
+function loadFromLocalStorage() {
+  const raw = typeof window !== "undefined" ? localStorage.getItem(LOCAL_STORAGE_KEY) : null;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+function clearLocalStorage() {
+  if (typeof window !== "undefined") localStorage.removeItem(LOCAL_STORAGE_KEY);
+}
+
 export default function IntegratedPricing() {
   const { isSignedIn, userId } = useAuth();
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
@@ -32,6 +47,9 @@ export default function IntegratedPricing() {
   const createCheckout = useAction(api.subscriptions.createCheckoutSession);
   const createPortalUrl = useAction(api.subscriptions.createCustomerPortalUrl);
   const upsertUser = useMutation(api.users.upsertUser);
+  const saveApplication = useMutation(api.applications.saveApplication);
+  const [savingApp, setSavingApp] = useState(false);
+  const [appSaved, setAppSaved] = useState(false);
 
   // Sync user when signed in
   React.useEffect(() => {
@@ -53,6 +71,36 @@ export default function IntegratedPricing() {
     };
     loadPlans();
   }, [getPlans]);
+
+  // After payment, if onboarding data exists, save to Convex and redirect
+  React.useEffect(() => {
+    if (
+      isSignedIn &&
+      userSubscription?.status === "active" &&
+      !appSaved &&
+      !savingApp
+    ) {
+      const onboardingData = loadFromLocalStorage();
+      if (onboardingData) {
+        setSavingApp(true);
+        saveApplication({
+          ...onboardingData,
+          cvFileUrl: onboardingData.cvFile ? onboardingData.cvFile.name : undefined,
+          status: "submitted",
+        })
+          .then(() => {
+            clearLocalStorage();
+            setAppSaved(true);
+            window.location.href = "/dashboard";
+          })
+          .catch((err) => {
+            setError("Failed to save application after payment. Please contact support.");
+            console.error("Failed to save application after payment:", err);
+          })
+          .finally(() => setSavingApp(false));
+      }
+    }
+  }, [isSignedIn, userSubscription, appSaved, savingApp, saveApplication]);
 
   const handleSubscribe = async (priceId: string) => {
     if (!isSignedIn) {

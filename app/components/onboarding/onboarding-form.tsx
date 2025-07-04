@@ -83,9 +83,27 @@ function isStepValid(step: number, formData: OnboardingData): boolean {
   }
 }
 
+// Utility functions for localStorage
+const LOCAL_STORAGE_KEY = "cvreach_onboarding_data";
+function saveToLocalStorage(data: OnboardingData) {
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+}
+function loadFromLocalStorage(): OnboardingData | null {
+  const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+function clearLocalStorage() {
+  localStorage.removeItem(LOCAL_STORAGE_KEY);
+}
+
 export default function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<OnboardingData>({
+  const [formData, setFormData] = useState<OnboardingData>(() => loadFromLocalStorage() || {
     goal: "",
     location: "",
     workStyle: "",
@@ -107,7 +125,11 @@ export default function OnboardingForm() {
   const progress = (currentStep / STEPS.length) * 100;
 
   const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      saveToLocalStorage(updated);
+      return updated;
+    });
   };
 
   const nextStep = () => {
@@ -122,32 +144,17 @@ export default function OnboardingForm() {
     }
   };
 
-  const saveApplication = useMutation(api.applications.saveApplication);
-
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Save application data
-      await saveApplication({
-        goal: formData.goal,
-        location: formData.location,
-        workStyle: formData.workStyle,
-        experienceLevel: formData.experienceLevel,
-        startupPreference: formData.startupPreference,
-        teamVibe: formData.teamVibe,
-        targetCountries: formData.targetCountries,
-        cvFileUrl: formData.cvFile ? formData.cvFile.name : undefined,
-        cvOptimization: formData.cvOptimization,
-        jobTitles: formData.jobTitles,
-        companyCount: formData.companyCount,
-        status: "submitted",
-      });
+      // Save latest data to localStorage (just in case)
+      saveToLocalStorage(formData);
       // Redirect to Clerk sign-up with redirect to /pricing
       window.location.href = "/sign-up?redirect_url=/pricing";
     } catch (error) {
-      setError("Failed to save application. Please try again.");
-      console.error("Failed to save application:", error);
+      setError("Failed to save application locally. Please try again.");
+      console.error("Failed to save application locally:", error);
     } finally {
       setLoading(false);
     }
