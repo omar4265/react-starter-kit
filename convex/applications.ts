@@ -132,4 +132,43 @@ export const getAllApplications = query({
     // Fetch all applications
     return await ctx.db.query("applications").collect();
   },
+});
+
+export const createDummyApplication = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+    const now = Date.now();
+
+    // Create a dummy application for testing
+    const dummyApplication = {
+      userId,
+      goal: "Find remote software engineering opportunities",
+      location: "San Francisco, CA",
+      workStyle: "Remote",
+      experienceLevel: "Mid-level (3-5 years)",
+      startupPreference: "Early-stage startups",
+      teamVibe: "Collaborative and fast-paced",
+      targetCountries: ["United States", "Canada", "United Kingdom"],
+      cvFileUrl: "https://example.com/cv.pdf",
+      cvOptimization: "AI-optimized for tech roles",
+      jobTitles: ["Software Engineer", "Full Stack Developer", "React Developer"],
+      companyCount: "50-100 companies",
+      status: "submitted",
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    console.log("Creating dummy application for user:", userId);
+    
+    const result = await ctx.db.insert("applications", dummyApplication);
+    console.log("Dummy application created with ID:", result);
+    
+    return result;
+  },
 }); 

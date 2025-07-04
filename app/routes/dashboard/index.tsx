@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/clerk-react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
 const ADMIN_EMAIL = "omarabuhassan4265@gmail.com";
@@ -12,6 +12,9 @@ export default function DashboardPage() {
   const userApplication = useQuery(api.applications.getApplication, {});
   // Fetch all applications if admin
   const allApplications = isAdmin ? useQuery(api.applications.getAllApplications, {}) : [];
+  
+  // Mutation to create dummy application
+  const createDummyApplication = useMutation(api.applications.createDummyApplication);
 
   // Loading state
   if (!isLoaded) {
@@ -112,12 +115,21 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold mb-2">Welcome to Your Dashboard</h1>
             <p className="text-gray-600 mb-6">You haven't submitted an application yet. Let's get started!</p>
           </div>
-          <a 
-            href="/onboarding" 
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            Start Your Application
-          </a>
+          <div className="space-y-3">
+            <a 
+              href="/onboarding" 
+              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Start Your Application
+            </a>
+            <div className="text-sm text-gray-500">or</div>
+            <button
+              onClick={() => createDummyApplication()}
+              className="inline-block bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+            >
+              Create Test Application
+            </button>
+          </div>
         </div>
       </div>
     );
