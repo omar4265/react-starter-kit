@@ -9,26 +9,26 @@ interface ExperienceLevelProps {
 
 const experienceLevels = [
   {
-    id: "0-1",
-    title: "0–1 years",
-    description: "Just starting out or recent graduate",
+    id: "internship",
+    title: "Internship",
+    description: "Looking for an internship or trainee role",
     icon: GraduationCap,
   },
   {
-    id: "2-3",
-    title: "2–3 years",
-    description: "Some professional experience",
+    id: "0-1",
+    title: "0–1 years",
+    description: "Just starting out or recent graduate",
     icon: Briefcase,
   },
   {
-    id: "4-6",
-    title: "4–6 years",
-    description: "Mid-level professional",
+    id: "1-5",
+    title: "1–5 years",
+    description: "Some professional experience",
     icon: Award,
   },
   {
-    id: "7+",
-    title: "7+ years",
+    id: "5+",
+    title: "5+ years",
     description: "Senior or expert level",
     icon: Star,
   },

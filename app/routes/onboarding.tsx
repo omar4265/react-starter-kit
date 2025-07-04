@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { getAuth } from "@clerk/react-router/ssr.server";
 import { redirect } from "react-router";
 import OnboardingForm from "~/components/onboarding/onboarding-form";
@@ -15,28 +16,66 @@ import { useAuth } from "@clerk/react-router";
 //   return { userId };
 // }
 
+// Placeholder for sign-up step/modal
+function SignupComponent({ onSuccess }: { onSuccess: () => void }) {
+  // You would use Clerk's <SignUp /> component or a modal here
+  // For now, just a button to simulate sign-up
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[40vh]">
+      <h2 className="text-2xl font-bold mb-4">Create your account to continue</h2>
+      {/* Replace with Clerk <SignUp /> or social login */}
+      <button
+        className="bg-primary text-white px-6 py-3 rounded-lg text-lg"
+        onClick={onSuccess}
+      >
+        Simulate Sign Up
+      </button>
+    </div>
+  );
+}
+
 export default function OnboardingPage() {
   const { isSignedIn } = useAuth();
-  const subscriptionStatus = useQuery(api.subscriptions.checkUserSubscriptionStatus, {});
-  const application = useQuery(api.applications.getApplication, {});
+  const [showSignup, setShowSignup] = useState(false);
+  const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
-  // For debugging - show a simple message first
-  if (!isSignedIn) {
+  // If signed in, redirect to dashboard
+  if (isSignedIn) {
+    window.location.href = "/dashboard";
+    return null;
+  }
+
+  // After sign-up, show paywall
+  if (showPaywall && onboardingData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8">
-        <div className="mx-auto max-w-4xl px-4 text-center">
-          <h1 className="text-2xl font-bold mb-4">Not Signed In</h1>
-          <p>You need to be signed in to access onboarding.</p>
+        <div className="mx-auto max-w-6xl px-4">
+          <SubscriptionPaywall formData={onboardingData} />
         </div>
       </div>
     );
   }
 
-  // Show onboarding form for now (simplified)
+  // If onboarding is complete but not signed up, show sign-up
+  if (showSignup && onboardingData) {
+    return (
+      <SignupComponent
+        onSuccess={() => setShowPaywall(true)}
+      />
+    );
+  }
+
+  // Otherwise, show onboarding form
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8">
       <div className="mx-auto max-w-4xl px-4">
-        <OnboardingForm />
+        <OnboardingForm
+          onComplete={(data: any) => {
+            setOnboardingData(data);
+            setShowSignup(true);
+          }}
+        />
       </div>
     </div>
   );

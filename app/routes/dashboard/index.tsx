@@ -1,17 +1,114 @@
 "use client";
-import { ChartAreaInteractive } from "~/components/dashboard/chart-area-interactive";
-import { SectionCards } from "~/components/dashboard/section-cards";
+import { useUser } from "@clerk/clerk-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "~/convex/_generated/api";
+import { useMemo } from "react";
 
-export default function Page() {
+const STATUS_COLORS = {
+  Submitted: "bg-green-100 text-green-800",
+  "In Progress": "bg-blue-100 text-blue-800",
+  Completed: "bg-gray-100 text-gray-800",
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const color = STATUS_COLORS[status] || "bg-gray-100 text-gray-800";
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          <SectionCards />
-          <div className="px-4 lg:px-6">
-            <ChartAreaInteractive />
-          </div>
+    <span className={`px-2 py-1 rounded text-xs font-semibold ${color}`}>{status}</span>
+  );
+}
+
+export default function DashboardPage() {
+  const { user } = useUser();
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === "omarabuhassan4265@gmail.com";
+
+  // Admin: fetch all, User: fetch own
+  const allApplications = useQuery(api.applications.getAllApplications, {});
+  const userApplication = useQuery(api.applications.getApplication, {});
+  const updateStatus = useMutation(api.applications.updateApplicationStatus);
+
+  // For admin, fetch user emails (if needed)
+  const applications = useMemo(() => {
+    if (isAdmin) return allApplications || [];
+    return userApplication ? [userApplication] : [];
+  }, [isAdmin, allApplications, userApplication]);
+
+  if (!user) return <div>Loading...</div>;
+
+  if (isAdmin) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border rounded shadow">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border">User Email</th>
+                <th className="px-4 py-2 border">Job Titles</th>
+                <th className="px-4 py-2 border">Company Count</th>
+                <th className="px-4 py-2 border">Preferred Countries</th>
+                <th className="px-4 py-2 border">Submission Date</th>
+                <th className="px-4 py-2 border">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {applications.map((app) => (
+                <tr key={app._id}>
+                  <td className="px-4 py-2 border">{app.userId}</td>
+                  <td className="px-4 py-2 border">{app.jobTitles?.join(", ")}</td>
+                  <td className="px-4 py-2 border">{app.companyCount}</td>
+                  <td className="px-4 py-2 border">{app.targetCountries?.join(", ")}</td>
+                  <td className="px-4 py-2 border">{new Date(app.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-2 border">
+                    <select
+                      className="border rounded px-2 py-1"
+                      value={app.status}
+                      onChange={async (e) => {
+                        await updateStatus({ status: e.target.value, _id: app._id, userId: app.userId });
+                      }}
+                    >
+                      <option value="Submitted">Submitted</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </div>
+    );
+  }
+
+  // User dashboard
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">My Applications</h1>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border rounded shadow">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 border">Job Titles</th>
+              <th className="px-4 py-2 border">Company Count</th>
+              <th className="px-4 py-2 border">Preferred Countries</th>
+              <th className="px-4 py-2 border">Submission Date</th>
+              <th className="px-4 py-2 border">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {applications.map((app) => (
+              <tr key={app._id}>
+                <td className="px-4 py-2 border">{app.jobTitles?.join(", ")}</td>
+                <td className="px-4 py-2 border">{app.companyCount}</td>
+                <td className="px-4 py-2 border">{app.targetCountries?.join(", ")}</td>
+                <td className="px-4 py-2 border">{new Date(app.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-2 border">
+                  <StatusBadge status={app.status} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

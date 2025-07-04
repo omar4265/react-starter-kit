@@ -21,11 +21,15 @@ import { CVAnalysis } from "./steps/cv-analysis";
 import { CVOptimization } from "./steps/cv-optimization";
 import { JobTitles } from "./steps/job-titles";
 import { CompanyCount } from "./steps/company-count";
+import { NameLocationStep } from "./steps/name-location";
 
 export interface OnboardingData {
   goal: string;
   location: string;
   workStyle: string;
+  firstName: string;
+  lastName: string;
+  currentLocation: string;
   experienceLevel: string;
   startupPreference: string;
   teamVibe: string;
@@ -37,8 +41,8 @@ export interface OnboardingData {
 }
 
 const STEPS = [
-  { id: 1, title: "Goal Selection", component: GoalSelection },
-  { id: 2, title: "Location & Work Style", component: LocationWorkStyle },
+  { id: 1, title: "Your Name & Current Location", component: NameLocationStep },
+  { id: 2, title: "Goal Selection", component: GoalSelection },
   { id: 3, title: "Experience Level", component: ExperienceLevel },
   { id: 4, title: "Startup Preference", component: StartupPreference },
   { id: 5, title: "Team Vibe", component: TeamVibe },
@@ -50,12 +54,44 @@ const STEPS = [
   { id: 11, title: "Company Count", component: CompanyCount },
 ];
 
+function isStepValid(step: number, formData: OnboardingData): boolean {
+  switch (step) {
+    case 1:
+      return !!formData.firstName && !!formData.lastName && !!formData.currentLocation;
+    case 2:
+      return !!formData.goal;
+    case 3:
+      return !!formData.experienceLevel;
+    case 4:
+      return !!formData.startupPreference;
+    case 5:
+      return !!formData.teamVibe;
+    case 6:
+      return formData.targetCountries.length > 0;
+    case 7:
+      return !!formData.cvFile;
+    case 8:
+      return true; // CV analysis is just a display step
+    case 9:
+      return !!formData.cvOptimization;
+    case 10:
+      return formData.jobTitles.length > 0;
+    case 11:
+      return !!formData.companyCount;
+    default:
+      return true;
+  }
+}
+
 export default function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<OnboardingData>({
     goal: "",
     location: "",
     workStyle: "",
+    firstName: "",
+    lastName: "",
+    currentLocation: "",
     experienceLevel: "",
     startupPreference: "",
     teamVibe: "",
@@ -115,7 +151,7 @@ export default function OnboardingForm() {
   const CurrentStepComponent = STEPS[currentStep - 1].component;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-2 sm:px-0">
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-2">
@@ -142,7 +178,7 @@ export default function OnboardingForm() {
       </div>
 
       {/* Form Card */}
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-2xl mx-auto w-full sm:rounded-xl rounded-lg border py-4 sm:py-6 shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl">
             {STEPS[currentStep - 1].title}
@@ -155,12 +191,12 @@ export default function OnboardingForm() {
           />
           
           {/* Navigation */}
-          <div className="flex justify-between pt-6">
+          <div className="flex flex-col-reverse sm:flex-row justify-between pt-6 gap-3 sm:gap-0">
             <Button
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <ArrowLeft className="w-4 h-4" />
               Previous
@@ -169,8 +205,9 @@ export default function OnboardingForm() {
             {currentStep === STEPS.length ? (
               <Button
                 onClick={handleSubmit}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
                 size="lg"
+                disabled={!isStepValid(currentStep, formData)}
               >
                 Complete Setup
                 <CheckCircle className="w-4 h-4" />
@@ -178,8 +215,9 @@ export default function OnboardingForm() {
             ) : (
               <Button
                 onClick={nextStep}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
                 size="lg"
+                disabled={!isStepValid(currentStep, formData)}
               >
                 Next
                 <ArrowRight className="w-4 h-4" />

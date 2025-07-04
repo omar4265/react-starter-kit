@@ -42,11 +42,7 @@ export default function IntegrationsSection({
                   }}
                 >
                   <Link
-                    to={
-                      loaderData?.isSignedIn
-                        ? "/onboarding"
-                        : "/sign-up"
-                    }
+                    to="/onboarding"
                     prefetch="viewport"
                   >
                     Send My CV Now

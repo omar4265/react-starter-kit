@@ -68,26 +68,37 @@ export const getApplication = query({
 export const updateApplicationStatus = mutation({
   args: {
     status: v.string(),
+    _id: v.id("applications"),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Not authenticated");
     }
-
-    const userId = identity.subject;
-    const application = await ctx.db
-      .query("applications")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
-
+    // Allow admin to update any, user to update their own
+    const isAdmin = identity.email === "omarabuhassan4265@gmail.com";
+    if (!isAdmin && identity.subject !== args.userId) {
+      throw new Error("Not authorized");
+    }
+    const application = await ctx.db.get(args._id);
     if (!application) {
       throw new Error("Application not found");
     }
-
-    return await ctx.db.patch(application._id, {
+    return await ctx.db.patch(args._id, {
       status: args.status,
       updatedAt: Date.now(),
     });
+  },
+});
+
+export const getAllApplications = query({
+  args: {},
+  handler: async (ctx) => {
+    // Only allow if the user is admin (email check should be done on frontend)
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    // Fetch all applications
+    return await ctx.db.query("applications").collect();
   },
 }); 
