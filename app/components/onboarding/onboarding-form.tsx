@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Progress } from "~/components/ui/progress";
-import { ArrowLeft, ArrowRight, Upload, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, CheckCircle, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -101,6 +101,8 @@ export default function OnboardingForm() {
     jobTitles: [],
     companyCount: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const progress = (currentStep / STEPS.length) * 100;
 
@@ -123,6 +125,8 @@ export default function OnboardingForm() {
   const saveApplication = useMutation(api.applications.saveApplication);
 
   const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
     try {
       // Save application data
       await saveApplication({
@@ -139,12 +143,13 @@ export default function OnboardingForm() {
         companyCount: formData.companyCount,
         status: "submitted",
       });
-
       // Redirect to Clerk sign-up with redirect to /pricing
       window.location.href = "/sign-up?redirect_url=/pricing";
     } catch (error) {
+      setError("Failed to save application. Please try again.");
       console.error("Failed to save application:", error);
-      // Handle error - could show a toast notification
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -190,34 +195,45 @@ export default function OnboardingForm() {
             updateFormData={updateFormData}
           />
           
+          {/* Error message */}
+          {error && (
+            <div className="text-red-600 text-sm mb-2">{error}</div>
+          )}
           {/* Navigation */}
           <div className="flex flex-col-reverse sm:flex-row justify-between pt-6 gap-3 sm:gap-0">
             <Button
               variant="outline"
               onClick={prevStep}
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || loading}
               className="flex items-center gap-2 w-full sm:w-auto"
             >
               <ArrowLeft className="w-4 h-4" />
               Previous
             </Button>
-            
             {currentStep === STEPS.length ? (
               <Button
                 onClick={handleSubmit}
                 className="flex items-center gap-2 w-full sm:w-auto"
                 size="lg"
-                disabled={!isStepValid(currentStep, formData)}
+                disabled={!isStepValid(currentStep, formData) || loading}
               >
-                Complete Setup
-                <CheckCircle className="w-4 h-4" />
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                  </>
+                ) : (
+                  <>
+                    Complete Setup
+                    <CheckCircle className="w-4 h-4" />
+                  </>
+                )}
               </Button>
             ) : (
               <Button
                 onClick={nextStep}
                 className="flex items-center gap-2 w-full sm:w-auto"
                 size="lg"
-                disabled={!isStepValid(currentStep, formData)}
+                disabled={!isStepValid(currentStep, formData) || loading}
               >
                 Next
                 <ArrowRight className="w-4 h-4" />
