@@ -52,43 +52,27 @@ export const saveApplication = mutation({
 export const getApplication = query({
   args: {},
   handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    
+    if (!identity) {
+      return null;
+    }
+
+    const userId = identity.subject;
+    
+    if (!userId) {
+      return null;
+    }
+
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      console.log("getApplication: identity", identity ? "exists" : "null");
-      
-      if (!identity) {
-        console.log("getApplication: no identity, returning null");
-        return null;
-      }
-
-      const userId = identity.subject;
-      console.log("getApplication: userId", userId);
-      
-      if (!userId) {
-        console.log("getApplication: no userId, returning null");
-        return null;
-      }
-
       const result = await ctx.db
         .query("applications")
         .withIndex("by_user", (q) => q.eq("userId", userId))
         .first();
       
-      console.log("getApplication: result", result ? "found" : "not found");
-      
-      if (result) {
-        console.log("getApplication: application data", {
-          id: result._id,
-          userId: result.userId,
-          goal: result.goal,
-          status: result.status
-        });
-      }
-      
       return result;
     } catch (error) {
       console.error("getApplication error:", error);
-      // Return null instead of throwing to prevent client crashes
       return null;
     }
   },

@@ -1,20 +1,36 @@
 import { useUser } from "@clerk/clerk-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useState, useEffect } from "react";
 
 const ADMIN_EMAIL = "omarabuhassan4265@gmail.com";
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
+  const [queryError, setQueryError] = useState<string | null>(null);
 
-  // Fetch current user's application with error handling
+  // Fetch current user's application
   const userApplication = useQuery(api.applications.getApplication, {});
+  
   // Fetch all applications if admin
   const allApplications = isAdmin ? useQuery(api.applications.getAllApplications, {}) : [];
   
   // Mutation to create dummy application
   const createDummyApplication = useMutation(api.applications.createDummyApplication);
+
+  // Clear error when user changes
+  useEffect(() => {
+    setQueryError(null);
+  }, [user?.id]);
+
+  // Handle query errors
+  useEffect(() => {
+    if (userApplication === null && user && isLoaded) {
+      // This is not an error - just no application found
+      setQueryError(null);
+    }
+  }, [userApplication, user, isLoaded]);
 
   // Loading state
   if (!isLoaded) {
@@ -32,6 +48,41 @@ export default function DashboardPage() {
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
         <p className="text-gray-600">Please sign in to view your dashboard.</p>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (queryError) {
+    return (
+      <div className="p-8 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+            <p className="text-gray-600 mb-4">We encountered an error loading your data.</p>
+            <p className="text-sm text-red-600 mb-6">{queryError}</p>
+          </div>
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Try Again
+            </button>
+            <div className="text-sm text-gray-500">or</div>
+            <button
+              onClick={() => createDummyApplication()}
+              className="inline-block bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+            >
+              Create Test Application
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
