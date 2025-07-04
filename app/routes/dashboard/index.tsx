@@ -5,15 +5,33 @@ import { api } from "../../../convex/_generated/api";
 const ADMIN_EMAIL = "omarabuhassan4265@gmail.com";
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
 
-  // Fetch current user's application
+  // Fetch current user's application with error handling
   const userApplication = useQuery(api.applications.getApplication, {});
   // Fetch all applications if admin
   const allApplications = isAdmin ? useQuery(api.applications.getAllApplications, {}) : [];
 
-  if (!user) return <div className="p-8 text-center">Loading...</div>;
+  // Loading state
+  if (!isLoaded) {
+    return <div className="p-8 text-center">Loading user...</div>;
+  }
+
+  // Not signed in
+  if (!user) {
+    return (
+      <div className="p-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+        <p className="text-gray-600">Please sign in to view your dashboard.</p>
+      </div>
+    );
+  }
+
+  // Error state for user application query
+  if (userApplication === undefined) {
+    return <div className="p-8 text-center">Loading application...</div>;
+  }
 
   if (isAdmin) {
     return (
@@ -71,7 +89,18 @@ export default function DashboardPage() {
 
   // Regular user dashboard
   if (!userApplication) {
-    return <div className="p-8 text-center text-gray-500">You have not submitted any applications yet.</div>;
+    return (
+      <div className="p-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">My Dashboard</h1>
+        <p className="text-gray-600">You have not submitted any applications yet.</p>
+        <a 
+          href="/onboarding" 
+          className="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+        >
+          Start Application
+        </a>
+      </div>
+    );
   }
 
   return (

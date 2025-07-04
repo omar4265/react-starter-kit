@@ -52,16 +52,29 @@ export const saveApplication = mutation({
 export const getApplication = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
-    }
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      console.log("getApplication: identity", identity ? "exists" : "null");
+      
+      if (!identity) {
+        console.log("getApplication: no identity, returning null");
+        return null;
+      }
 
-    const userId = identity.subject;
-    return await ctx.db
-      .query("applications")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
+      const userId = identity.subject;
+      console.log("getApplication: userId", userId);
+      
+      const result = await ctx.db
+        .query("applications")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .first();
+      
+      console.log("getApplication: result", result ? "found" : "not found");
+      return result;
+    } catch (error) {
+      console.error("getApplication error:", error);
+      throw error;
+    }
   },
 });
 
