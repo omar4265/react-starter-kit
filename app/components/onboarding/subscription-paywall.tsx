@@ -3,6 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Link } from "react-router";
 import { CheckCircle, Star, Zap, Target, Building2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/react-router";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 interface SubscriptionPaywallProps {
   formData: {
@@ -68,6 +72,52 @@ const plans = [
 ];
 
 export function SubscriptionPaywall({ formData }: SubscriptionPaywallProps) {
+  const { isSignedIn } = useAuth();
+  const saveApplication = useMutation(api.applications.saveApplication);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function saveAndRedirect() {
+      if (isSignedIn && formData) {
+        setSaving(true);
+        setError(null);
+        try {
+          await saveApplication({
+            goal: formData.goal || "",
+            location: formData.location || "",
+            workStyle: formData.workStyle || "",
+            experienceLevel: formData.experienceLevel || "",
+            startupPreference: formData.startupPreference || "",
+            teamVibe: formData.teamVibe || "",
+            targetCountries: Array.isArray(formData.targetCountries) ? formData.targetCountries : [],
+            cvFileUrl: "",
+            cvOptimization: formData.cvOptimization || "",
+            jobTitles: Array.isArray(formData.jobTitles) ? formData.jobTitles : [],
+            companyCount: formData.companyCount || "",
+            status: "Submitted",
+          });
+          window.location.href = "/pricing";
+        } catch (err) {
+          setError("Failed to save application. Please try again.");
+        } finally {
+          setSaving(false);
+        }
+      }
+    }
+    saveAndRedirect();
+  }, [isSignedIn, formData, saveApplication]);
+
+  if (!isSignedIn) {
+    return <div className="text-center p-8">Please sign up or sign in to continue.</div>;
+  }
+  if (saving) {
+    return <div className="text-center p-8">Saving your application...</div>;
+  }
+  if (error) {
+    return <div className="text-center p-8 text-red-600">{error}</div>;
+  }
+
   const selectedPlan = plans.find(plan => plan.id === formData.companyCount);
 
   return (

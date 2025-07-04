@@ -1,5 +1,4 @@
-import { IconDashboard, IconSettings } from "@tabler/icons-react";
-import { MessageCircle } from "lucide-react";
+import { IconDashboard } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
@@ -20,19 +19,8 @@ const data = {
       url: "/dashboard",
       icon: IconDashboard,
     },
-    {
-      title: "Chat",
-      url: "/dashboard/chat",
-      icon: MessageCircle,
-    },
   ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "/dashboard/settings",
-      icon: IconSettings,
-    },
-  ],
+  navSecondary: [],
 };
 
 export function AppSidebar({

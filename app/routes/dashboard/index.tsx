@@ -1,164 +1,98 @@
-"use client";
 import { useUser } from "@clerk/clerk-react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useMemo, useEffect, useState } from "react";
-import type { Id } from "../../../convex/_generated/dataModel";
 
-type Application = {
-  _id: string;
-  userId: string;
-  jobTitles: string[];
-  companyCount: string;
-  targetCountries: string[];
-  createdAt: number;
-  status: string;
-};
-
-interface StatusBadgeProps {
-  status: string;
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  Submitted: "bg-green-100 text-green-800",
-  "In Progress": "bg-blue-100 text-blue-800",
-  Completed: "bg-gray-100 text-gray-800",
-};
-
-function StatusBadge({ status }: StatusBadgeProps) {
-  const color = STATUS_COLORS[status] || "bg-gray-100 text-gray-800";
-  return (
-    <span className={`px-2 py-1 rounded text-xs font-semibold ${color}`}>{status}</span>
-  );
-}
+const ADMIN_EMAIL = "omarabuhassan4265@gmail.com";
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const isAdmin = user?.primaryEmailAddress?.emailAddress === "omarabuhassan4265@gmail.com";
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
 
-  // Admin: fetch all, User: fetch own
-  const allApplications = useQuery(api.applications.getAllApplications, {});
+  // Fetch current user's application
   const userApplication = useQuery(api.applications.getApplication, {});
-  const updateStatus = useMutation(api.applications.updateApplicationStatus);
+  // Fetch all applications if admin
+  const allApplications = isAdmin ? useQuery(api.applications.getAllApplications, {}) : [];
 
-  // For admin, fetch user emails (if needed)
-  const applications: Application[] = useMemo(() => {
-    if (isAdmin) return (allApplications as Application[]) || [];
-    return userApplication ? [userApplication as Application] : [];
-  }, [isAdmin, allApplications, userApplication]);
-
-  // State to store userId to email mapping
-  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
-  const [loadingEmails, setLoadingEmails] = useState(false);
-
-  useEffect(() => {
-    if (!isAdmin || applications.length === 0) return;
-    setLoadingEmails(true);
-    // Fetch emails for all userIds
-    Promise.all(
-      applications.map(async (app) => {
-        try {
-          // Clerk userId is the same as app.userId
-          const res = await fetch(`/api/clerk-user-email?userId=${app.userId}`);
-          if (!res.ok) throw new Error("Failed to fetch");
-          const data = await res.json();
-          return { userId: app.userId, email: data.email };
-        } catch {
-          return { userId: app.userId, email: "Unknown" };
-        }
-      })
-    ).then((results) => {
-      const map: Record<string, string> = {};
-      results.forEach(({ userId, email }) => {
-        map[userId] = email;
-      });
-      setUserEmails(map);
-      setLoadingEmails(false);
-    });
-  }, [isAdmin, applications]);
-
-  if (!user) return <div>Loading...</div>;
+  if (!user) return <div className="p-8 text-center">Loading...</div>;
 
   if (isAdmin) {
     return (
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
         <div className="overflow-x-auto">
-          {loadingEmails ? (
-            <div>Loading user emails...</div>
-          ) : (
-            <table className="min-w-full bg-white border rounded shadow">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 border">User Email</th>
-                  <th className="px-4 py-2 border">Job Titles</th>
-                  <th className="px-4 py-2 border">Company Count</th>
-                  <th className="px-4 py-2 border">Preferred Countries</th>
-                  <th className="px-4 py-2 border">Submission Date</th>
-                  <th className="px-4 py-2 border">Status</th>
+          <table className="min-w-full bg-white border rounded shadow">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border">User ID</th>
+                <th className="px-4 py-2 border">Goal</th>
+                <th className="px-4 py-2 border">Location</th>
+                <th className="px-4 py-2 border">Work Style</th>
+                <th className="px-4 py-2 border">Experience</th>
+                <th className="px-4 py-2 border">Startup Pref</th>
+                <th className="px-4 py-2 border">Team Vibe</th>
+                <th className="px-4 py-2 border">Countries</th>
+                <th className="px-4 py-2 border">CV URL</th>
+                <th className="px-4 py-2 border">CV Opt</th>
+                <th className="px-4 py-2 border">Job Titles</th>
+                <th className="px-4 py-2 border">Company Count</th>
+                <th className="px-4 py-2 border">Status</th>
+                <th className="px-4 py-2 border">Created</th>
+                <th className="px-4 py-2 border">Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(allApplications) && allApplications.length > 0 ? allApplications.map((app) => (
+                <tr key={app._id}>
+                  <td className="px-4 py-2 border">{app.userId}</td>
+                  <td className="px-4 py-2 border">{app.goal}</td>
+                  <td className="px-4 py-2 border">{app.location}</td>
+                  <td className="px-4 py-2 border">{app.workStyle}</td>
+                  <td className="px-4 py-2 border">{app.experienceLevel}</td>
+                  <td className="px-4 py-2 border">{app.startupPreference}</td>
+                  <td className="px-4 py-2 border">{app.teamVibe}</td>
+                  <td className="px-4 py-2 border">{Array.isArray(app.targetCountries) ? app.targetCountries.join(", ") : "N/A"}</td>
+                  <td className="px-4 py-2 border">{app.cvFileUrl || "N/A"}</td>
+                  <td className="px-4 py-2 border">{app.cvOptimization}</td>
+                  <td className="px-4 py-2 border">{Array.isArray(app.jobTitles) ? app.jobTitles.join(", ") : "N/A"}</td>
+                  <td className="px-4 py-2 border">{app.companyCount}</td>
+                  <td className="px-4 py-2 border">{app.status}</td>
+                  <td className="px-4 py-2 border">{app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "N/A"}</td>
+                  <td className="px-4 py-2 border">{app.updatedAt ? new Date(app.updatedAt).toLocaleDateString() : "N/A"}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {applications.map((app: Application) => (
-                  <tr key={app._id}>
-                    <td className="px-4 py-2 border">{userEmails[app.userId] || "Unknown"}</td>
-                    <td className="px-4 py-2 border">{app.jobTitles?.join(", ")}</td>
-                    <td className="px-4 py-2 border">{app.companyCount}</td>
-                    <td className="px-4 py-2 border">{app.targetCountries?.join(", ")}</td>
-                    <td className="px-4 py-2 border">{new Date(app.createdAt).toLocaleDateString()}</td>
-                    <td className="px-4 py-2 border">
-                      <select
-                        className="border rounded px-2 py-1"
-                        value={app.status}
-                        onChange={async (e) => {
-                          await updateStatus({ status: e.target.value, _id: app._id as Id<"applications">, userId: app.userId });
-                        }}
-                      >
-                        <option value="Submitted">Submitted</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+              )) : (
+                <tr><td colSpan={15} className="text-center p-8">No applications found.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     );
   }
 
-  // User dashboard
+  // Regular user dashboard
+  if (!userApplication) {
+    return <div className="p-8 text-center text-gray-500">You have not submitted any applications yet.</div>;
+  }
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">My Applications</h1>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border rounded shadow">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 border">Job Titles</th>
-              <th className="px-4 py-2 border">Company Count</th>
-              <th className="px-4 py-2 border">Preferred Countries</th>
-              <th className="px-4 py-2 border">Submission Date</th>
-              <th className="px-4 py-2 border">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.map((app: Application) => (
-              <tr key={app._id}>
-                <td className="px-4 py-2 border">{app.jobTitles?.join(", ")}</td>
-                <td className="px-4 py-2 border">{app.companyCount}</td>
-                <td className="px-4 py-2 border">{app.targetCountries?.join(", ")}</td>
-                <td className="px-4 py-2 border">{new Date(app.createdAt).toLocaleDateString()}</td>
-                <td className="px-4 py-2 border">
-                  <StatusBadge status={app.status} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="p-6 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">My Application</h1>
+      <div className="bg-white rounded shadow p-6 space-y-4">
+        <div><strong>Goal:</strong> {userApplication.goal}</div>
+        <div><strong>Location:</strong> {userApplication.location}</div>
+        <div><strong>Work Style:</strong> {userApplication.workStyle}</div>
+        <div><strong>Experience Level:</strong> {userApplication.experienceLevel}</div>
+        <div><strong>Startup Preference:</strong> {userApplication.startupPreference}</div>
+        <div><strong>Team Vibe:</strong> {userApplication.teamVibe}</div>
+        <div><strong>Target Countries:</strong> {Array.isArray(userApplication.targetCountries) ? userApplication.targetCountries.join(", ") : "N/A"}</div>
+        <div><strong>CV File URL:</strong> {userApplication.cvFileUrl || "N/A"}</div>
+        <div><strong>CV Optimization:</strong> {userApplication.cvOptimization}</div>
+        <div><strong>Job Titles:</strong> {Array.isArray(userApplication.jobTitles) ? userApplication.jobTitles.join(", ") : "N/A"}</div>
+        <div><strong>Company Count:</strong> {userApplication.companyCount}</div>
+        <div><strong>Status:</strong> {userApplication.status}</div>
+        <div><strong>Created At:</strong> {userApplication.createdAt ? new Date(userApplication.createdAt).toLocaleDateString() : "N/A"}</div>
+        <div><strong>Updated At:</strong> {userApplication.updatedAt ? new Date(userApplication.updatedAt).toLocaleDateString() : "N/A"}</div>
       </div>
     </div>
   );
-}
+} 

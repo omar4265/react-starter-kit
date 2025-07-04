@@ -97,7 +97,9 @@ export const getAllApplications = query({
   handler: async (ctx) => {
     // Only allow if the user is admin (email check should be done on frontend)
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
+    if (!identity || identity.email !== "omarabuhassan4265@gmail.com") {
+      return [];
+    }
     // Fetch all applications
     return await ctx.db.query("applications").collect();
   },
